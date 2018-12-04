@@ -20,6 +20,7 @@ robot    = SerialLink(L,      'name', 'Planar_Robot');
 %% Task 1 (End-Effector position)
 % Desired position
 r1d = [0.65;0.17]; % close to a singularity
+r1d = [0.76; 0.18];
 
 % Initial position
 r10 = [0.7-0.2*cos(0);0.2*sin(0)];
@@ -30,6 +31,7 @@ L1 = diag([100 100]);
 % Desired orientation
 angle = -90*d2r;
 r2d = angle;
+r2d = 1.7484;
 
 % Initial orientation
 angle0 = -70*d2r;
@@ -90,9 +92,9 @@ for t=tt
     J2 = ones(1,robot.n);
     
     % Gains Calculation
-    [L1, L2] = Vel_computeGains_3DOF_2(J1, J2, robot.n);
-    % L1 = eye(2)*20;
-    % L2 = 20;
+    [L1, L2] = Vel_computeGains_3DOF_2_Chi(J1, J2, robot.n);
+%     L1 = eye(2)*20;
+%     L2 = 5;
     % Null space projectors
     N1 = (eye(robot.n)-pinv(J1)*J1);
     
@@ -115,8 +117,8 @@ for t=tt
     e2 = r2d - r2;
     
     % Solve CLIK
-    % qd = pinv(J1)*(r1d_d + L1*e1) + N1*J2'*L2*e2;
-    qd = pinv(J1)*(r1d_d + L1*e1) + pinv(J2*N1)*(L2*e2 - J2*pinv(J1)*L1*e1)
+    qd = pinv(J1)*(r1d_d + L1*e1) + N1*J2'*L2*e2;
+    % qd = pinv(J1)*(r1d_d + L1*e1) + pinv(J2*N1)*(L2*e2 - J2*pinv(J1)*L1*e1)
     q = q + qd*dt;
     
     % Store
@@ -152,11 +154,11 @@ EE_norm = vecnorm(EE1);
 plot(tt, EE_norm);
 title('Task1 - EE position')
 grid on
-axis([0 5 -0.1 0.25]);
+%axis([0 5 -0.1 0.25]);
 subplot(2,1,2)
 plot(tt, EE2(1,:)*180/pi);
 title('Task2 - EE orientation')
-axis([0 5 -40 10]);
+%axis([0 5 -40 10]);
 grid on
 
 %% Plotting joint values
@@ -178,7 +180,7 @@ figure
 plot(tt,L22);
 title('Singular values')
 grid on
-axis([0 5 0 0.15])
+% axis([0 5 0 0.15])
 %% Tasks gains
 figure
 subplot(2,1,1)

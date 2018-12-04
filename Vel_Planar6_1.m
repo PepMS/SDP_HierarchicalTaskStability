@@ -112,7 +112,7 @@ for t=tt
     J3 = [J3, zeros(2,robot.n-3)];
     
     % Gains Calculation
-    [L1, L2, L3] = computeGains(J1, J2, J3, robot.n);
+    % [L1, L2, L3] = computeGains(J1, J2, J3, robot.n);
     
     % Augmented Jacobians
     J12 = [J1;J2];
