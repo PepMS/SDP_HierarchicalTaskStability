@@ -108,14 +108,15 @@ for t=tt
     % Compute task errors
     r1 = robot.fkine(q);
     r1d_d = [0;0];
-    e1 = r1d - r1.t(1:2);
-    % e1 = r1d - r1(1:2,4);
+    % e1 = r1d - r1.t(1:2);
+    e1 = r1d - r1(1:2,4);
     
     r2 = sum(q);
     e2 = r2d - r2;
     
     % Solve CLIK
-    qd = pinv(J1)*(r1d_d + L1*e1) + N1*J2'*L2*e2;
+    % qd = pinv(J1)*(r1d_d + L1*e1) + N1*J2'*L2*e2;
+    qd = pinv(J1)*(r1d_d + L1*e1) + pinv(J2*N1)*(L2*e2 - J2*pinv(J1)*L1*e1)
     q = q + qd*dt;
     
     % Store
@@ -182,7 +183,9 @@ axis([0 5 0 0.15])
 figure
 subplot(2,1,1)
 plot(tt,LL1)
+grid on
 title('Task Gains');
 legend('X pos', 'Y pos');
 subplot(2,1,2)
 plot(tt,LL2)
+grid on

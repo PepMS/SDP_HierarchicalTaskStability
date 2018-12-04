@@ -1,3 +1,5 @@
+% Developing purposes - Script used to test the SDP stability method for
+% just one single iteration. 
 clear; clc; close all
 
 njoints = 6;
