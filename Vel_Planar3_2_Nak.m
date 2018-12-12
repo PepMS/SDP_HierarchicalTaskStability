@@ -59,6 +59,8 @@ i = 1;
 % Storage variables
 QQ   = zeros(robot.n, length(tt));
 QQ_d = zeros(robot.n, length(tt));
+QQ2_c  = zeros(3, length(tt));
+QQ2_n  = zeros(3, length(tt));
 
 % Gains
 LL1 = zeros(2,length(tt));
@@ -73,6 +75,14 @@ L12 = zeros(1,length(tt));
 % Errors
 EE1 = zeros(2,length(tt));
 EE2 = zeros(1,length(tt));
+
+RES1_c = zeros(1,length(tt));
+RES2_c = zeros(1,length(tt));
+RES1_n = zeros(1,length(tt));
+RES2_n = zeros(1,length(tt));
+
+
+
 
 PP = zeros(3,3,length(tt));
 M  = zeros(3,3,length(tt));
@@ -92,9 +102,9 @@ for t=tt
     J2 = ones(1,robot.n);
     
     % Gains Calculation
-%     [L1, L2] = Vel_computeGains_3DOF_2_Nak(J1, J2, robot.n);
-    L1 = eye(2)*20;
-    L2 = 20;
+    [L1, L2] = Vel_computeGains_3DOF_2_Chi(J1, J2, robot.n);
+    % L1 = eye(2)*20;
+    % L2 = 20;
     % Null space projectors
     N1 = (eye(robot.n)-pinv(J1)*J1);
     
@@ -118,6 +128,9 @@ for t=tt
     
     % Solve CLIK
     qd = pinv(J1)*(r1d_d + L1*e1) + pinv(J2*N1)*(L2*e2 - J2*pinv(J1)*L1*e1);
+    qd_n = pinv(J1)*(r1d_d + L1*e1) + pinv(J2*N1)*(L2*e2 - J2*pinv(J1)*L1*e1);
+    qd_c = pinv(J1)*(r1d_d + L1*e1) + N1*pinv(J2)*L2*e2;
+    qd = qd_n;
     q = q + qd*dt;
     
     % Store
@@ -137,15 +150,15 @@ for t=tt
     
     M_eVAL(:,i) = eig(M(:,:,i));
     
-    % Iterators
+    QQ2_n(:, i) = pinv(J2*N1)*(L2*e2 - J2*pinv(J1)*L1*e1);
+    QQ2_c(:, i) = N1*pinv(J2)*L2*e2;
+    RES1_n(i) = vecnorm(J1*qd_n - L1*e1);
+    RES1_c(i) = vecnorm(J1*qd_c - L1*e1);
+    RES2_n(i) = vecnorm(J2*qd_n - L2*e2);
+    RES2_c(i) = vecnorm(J2*qd_c - L2*e2);   
     
-%     w = waitforbuttonpress;
-% %     robot.plot(q')
-%     i
+    % Iterators
     i = i + 1;
-%     qd
-%     J1
-%     svd(J1)
      
 end
 
@@ -198,3 +211,18 @@ legend('X pos', 'Y pos');
 subplot(2,1,2)
 plot(tt,LL2)
 grid on
+
+%% Second term velocity against condition number
+figure ;
+subplot(3,1,1)
+plot(tt,[QQ2_n(1,:);QQ2_c(1,:)])
+subplot(3,1,2)
+plot(tt,[QQ2_n(2,:);QQ2_c(2,:)])
+subplot(3,1,3)
+plot(tt,[QQ2_n(3,:);QQ2_c(3,:)])
+
+figure ;
+subplot(2,1,1)
+plot(tt,[RES1_n;RES1_c])
+subplot(2,1,2)
+plot(tt,[RES2_n;RES2_c])
