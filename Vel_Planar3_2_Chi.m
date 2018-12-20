@@ -8,6 +8,7 @@ disp(strcat(mtTitle,'Loading libraries'))
 addpath(genpath('~/sdpa/share/sdpa/mex'));
 addpath(genpath('~/rvctools'));
 addpath('functions');
+addpath('figures');
 %% Constants definition
 d2r = pi/180;
 
@@ -110,8 +111,8 @@ for t=tt
     % Compute task errors
     r1 = robot.fkine(q);
     r1d_d = [0;0];
-    % e1 = r1d - r1.t(1:2);
-    e1 = r1d - r1(1:2,4);
+    e1 = r1d - r1.t(1:2);
+    % e1 = r1d - r1(1:2,4);
     
     r2 = sum(q);
     e2 = r2d - r2;
@@ -162,12 +163,7 @@ title('Task2 - EE orientation')
 grid on
 
 %% Plotting joint values
-figure
-plot(tt, QQ'*180/pi)
-title('Joint values')
-legend('q1','q2','q3')
-grid on
-axis([0 5 -150 150])
+jointVal_fig = jointValues_plot(1, tt, QQ_d);
 
 %% Plotting M eigenvalues
 figure
