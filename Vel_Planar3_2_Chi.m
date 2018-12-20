@@ -9,6 +9,7 @@ addpath(genpath('~/sdpa/share/sdpa/mex'));
 addpath(genpath('~/rvctools'));
 addpath('functions');
 addpath('figures');
+addpath('plots');
 %% Constants definition
 d2r = pi/180;
 
@@ -17,7 +18,7 @@ L(1) = Link('revolute','d', 0, 'a', 0.5, 'alpha', 0);
 L(2) = Link('revolute','d', 0, 'a', 0.3, 'alpha', 0);
 L(3) = Link('revolute','d', 0, 'a', 0.2, 'alpha', 0);
 
-robot    = SerialLink(L,      'name', 'Planar_Robot');
+robot = SerialLink(L, 'name', 'Planar_Robot');
 %% Task 1 (End-Effector position)
 % Desired position
 r1d = [0.65;0.17]; % close to a singularity
@@ -60,130 +61,166 @@ i = 1;
 % Storage variables
 QQ   = zeros(robot.n, length(tt));
 QQ_d = zeros(robot.n, length(tt));
+QQct = zeros(robot.n, length(tt));
+QQct_d = zeros(robot.n, length(tt));
 
 % Gains
-LL1 = zeros(2,length(tt));
-LL2 = zeros(1,length(tt));
-LL3 = zeros(2,length(tt));
+KK1 = zeros(2,length(tt));
+KK2 = zeros(1,length(tt));
+KK1ct = zeros(2,length(tt));
+KK2ct = zeros(1,length(tt));
 
 % singular values
-L11 = zeros(1,length(tt));
-L22 = zeros(1,length(tt));
-L12 = zeros(1,length(tt));
+SV1 = zeros(2,length(tt));
+SV2 = zeros(1,length(tt));
+SV1ct = zeros(2,length(tt));
+SV2ct = zeros(1,length(tt));
 
 % Errors
 EE1 = zeros(2,length(tt));
 EE2 = zeros(1,length(tt));
+EE1ct = zeros(2,length(tt));
+EE2ct = zeros(1,length(tt));
 
-PP = zeros(3,3,length(tt));
-M  = zeros(3,3,length(tt));
+% M matrix
+M   = zeros(3,3,length(tt));
+Mct = zeros(3,3,length(tt));
 
 eVAL = zeros(3,length(tt));
+eVALct = zeros(3,length(tt));
 
 % Variables
-q = q0;
+q   = q0;
+qct = q0;
 
 for t=tt
     
     % Jacobian computation
-    J1 = robot.jacob0(q);
-    J1(3:6,:)=[];
+    J1   = robot.jacob0(q);
+    J1ct = robot.jacob0(qct); 
+    J1(3:6,:)   = [];
+    J1ct(3:6,:) = [];
     
-    qSum = sum(q);
-    J2 = ones(1,robot.n);
+    qSum   = sum(q);
+    qSumct = sum(qct);
+    
+    J2   = ones(1,robot.n);
+    J2ct = ones(1,robot.n);
     
     % Gains Calculation
-    [L1, L2] = Vel_computeGains_3DOF_2_Chi(J1, J2, robot.n);
-%     L1 = eye(2)*20;
-%     L2 = 5;
+    [K1, K2] = Vel_computeGains_3DOF_2_Chi(J1, J2, robot.n);
+    K1ct = eye(2)*5;
+    K2ct = 5;
+    
     % Null space projectors
-    N1 = (eye(robot.n)-pinv(J1)*J1);
+    N1      = (eye(robot.n)-pinv(J1)*J1);
+    N1ct    = (eye(robot.n)-pinv(J1ct)*J1ct);
     
     % Matrix M construction
     M11 = eye(2);
     M22 = J2*N1*pinv(J2);
     M21 = J2*pinv(J1);
-    
-    l11 = min(svd(M11));
-    l22 = min(svd(M22));
-    l21 = max(svd(M21));
+    M11ct = eye(2);
+    M22ct = J2ct*N1ct*pinv(J2ct);
+    M21ct = J2ct*pinv(J1ct);
        
+    SV1(:, i) = svd(J1);
+    SV2(:, i) = svd(N1*pinv(J2));
+    SV1ct(:, i) = svd(J1ct);
+    SV2ct(:, i) = svd(N1ct*pinv(J2ct));
+           
     % Compute task errors
     r1 = robot.fkine(q);
     r1d_d = [0;0];
-    e1 = r1d - r1.t(1:2);
-    % e1 = r1d - r1(1:2,4);
-    
+    %e1 = r1d - r1.t(1:2);
+    e1 = r1d - r1(1:2,4);
+    r1ct = robot.fkine(qct);
+    r1dct_d = [0;0];
+    %e1 = r1d - r1.t(1:2);
+    e1ct = r1d - r1ct(1:2,4);
+   
     r2 = sum(q);
     e2 = r2d - r2;
+    r2ct = sum(qct);
+    e2ct = r2d - r2ct;
     
     % Solve CLIK
-    qd = pinv(J1)*(r1d_d + L1*e1) + N1*J2'*L2*e2;
-    % qd = pinv(J1)*(r1d_d + L1*e1) + pinv(J2*N1)*(L2*e2 - J2*pinv(J1)*L1*e1)
+    qd = pinv(J1)*(r1d_d + K1*e1) + N1*pinv(J2)*K2*e2;
     q = q + qd*dt;
+    qdct = pinv(J1ct)*(r1dct_d + K1ct*e1ct) + N1ct*pinv(J2ct)*K2ct*e2ct;
+    qct = qct + qdct*dt;
     
     % Store
     QQ(:, i)   = q;   % Joint position
     QQ_d(:, i) = qd;  % Joint velocities
+    QQct(:, i)   = qct;   % Joint position
+    QQct_d(:, i) = qdct;  % Joint velocities
     
     EE1(:, i) = e1; % Error task 1
     EE2(:, i) = e2; % Error task 2
+    EE1ct(:, i) = e1ct; % Error task 1
+    EE2ct(:, i) = e2ct; % Error task 2
     
-    LL1(:,i) = [L1(1) L1(4)]';  % Gain task 1
-    LL2(:,i) = L2;              % Gain task 2
+    KK1(:,i) = [K1(1) K1(4)]';  % Gain task 1
+    KK2(:,i) = K2;              % Gain task 2
     
-    L22(i) = min(svd(M22));     % Singular value for task 2 (projected)
+    M(:,:,i) = [M11*K1, zeros(2,1); ...
+        M21*K1, M22*K2];
     
-    M(:,:,i) = [M11*L1, zeros(2,1); ...
-        M21*L1, M22*L2];
+    Mct(:,:,i) = [M11ct*K1, zeros(2,1); ...
+        M21*K1, M22*K2];
     
-    M_eVAL(:,i) = eig(M(:,:,i));
+    eVAL(:,i) = eig(M(:,:,i));
+    eVALct(:,i) = eig(Mct(:,:,i));
     
     % Iterators
     i = i + 1;
 end
 
-% robot.plot(QQ','fps',50)
+%% Plotting robot
+conf_num  = size(QQ,2);
+conf_num  = 100;
+conf_show = 2;
+conf_step = cast(conf_num/conf_show,'uint8');
 
+figure(8);
+ops =  {'ortho','view','top','noshadow','noshading','notiles','nowrist','noname','jointdiam',5,'linkcolor','g'};
+robot.plotopt = ops;
+robot.plot(QQ(:,1)');
+hold on;
+axis([-0.1 1 -0.2 0.6])
+j = 1 + conf_step;
+
+%rob_cell = cell(1,conf_show);
+for i=1:conf_show
+    rob_cell = SerialLink(robot, 'name', strcat('robot',int2str(i)));
+    rob_cell.plotopt = ops;
+    rob_cell.plot(QQ(:,j)');
+    j = j + conf_step;
+end
+hold off
 
 %% Plotting tasks
 
 % Plotting task 1
-figure;
-subplot(2,1,1)
-EE_norm = vecnorm(EE1);
-plot(tt, EE_norm);
-title('Task1 - EE position')
-grid on
-%axis([0 5 -0.1 0.25]);
-subplot(2,1,2)
-plot(tt, EE2(1,:)*180/pi);
-title('Task2 - EE orientation')
-%axis([0 5 -40 10]);
-grid on
+task1Err_fig = task1Err_plot(1, tt, [vecnorm(EE1ct);vecnorm(EE1)]);
+task2Err_fig = task2Err_plot(2, tt, [EE2ct;EE2]);
 
+genericPrintFig(task1Err_fig, './plots/errorTask1');
+genericPrintFig(task2Err_fig, './plots/errorTask2');
 %% Plotting joint values
-jointVal_fig = jointValues_plot(1, tt, QQ_d);
+jointVel_fig = jointValues_plot(3, tt, QQ_d);
+genericPrintFig(jointVel_fig,'./plots/jointVel');
+
+jointVelct_fig = jointValues_plot(31, tt, QQct_d);
+
+%% Tasks gains
+gains_fig = gains_plot(4,tt,[KK1;KK2]);
+genericPrintFig(gains_fig,'./plots/gains');
+
+%% Plot singular values
+svd_fig = svd_plot(5, tt, [SV1;SV2]);
 
 %% Plotting M eigenvalues
-figure
-plot(tt, M_eVAL)
-axis([0 5 -1 50]);
-title('M Eigenvalues')
-grid on
-%% Plot singular values
-figure
-plot(tt,L22);
-title('Singular values')
-grid on
-% axis([0 5 0 0.15])
-%% Tasks gains
-figure
-subplot(2,1,1)
-plot(tt,LL1)
-grid on
-title('Task Gains');
-legend('X pos', 'Y pos');
-subplot(2,1,2)
-plot(tt,LL2)
-grid on
+
+eVal_fig = eVal_plot(6, tt, eVAL);

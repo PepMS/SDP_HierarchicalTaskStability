@@ -2,7 +2,7 @@
 % When N1*J2+*() degenerates, the gain of the second task is increased 
 % in order to keep the error bounded
 
-function [L1, L2] = Vel_computeGains_3DOF_2(J1, J2, njoints)
+function [L1, L2] = Vel_computeGains_3DOF_2_Chi(J1, J2, njoints)
 
 % Null space projectors
 N1 = (eye(njoints)-pinv(J1)*J1);
@@ -17,6 +17,11 @@ M21 = J2*pinv(J1);
 
 M = [M11, zeros(2,1); ...
     M21, M22];
+
+% Defining booleans to activate/deactivate tasks
+task1_gUB = false; % Task 1, gains upperbound
+task1_gLB = false; % Task 2, gains lowerbound
+
 
 % Find optimal gains - Solving SDP
 nVars = 4; % Number of varaibles

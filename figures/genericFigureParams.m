@@ -29,7 +29,7 @@ function [hleg] = genericFigureParams(hfig,title,fontsize,pos)
     plotPos = get(hax, 'Position');
     legendSize = get(hleg, 'Position');
     legendSize(1:2) = [];
-    legendPos = [plotPos(1)+plotPos(3)+0.005, 0.94-legendSize(2), legendSize];
-    set(hleg,'Position',legendPos);
+    % legendPos = [plotPos(1)+plotPos(3)-0.005, 0.94-legendSize(2), legendSize];
+    % set(hleg,'Position',legendPos);
 
 return
