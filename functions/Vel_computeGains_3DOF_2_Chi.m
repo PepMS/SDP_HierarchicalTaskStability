@@ -33,22 +33,16 @@ F = cell(nBlock, nVars + 1);
 c = [0 0 0 1];
 
 % Task 1 gains. Lower bound
-F{1,1} = diag([5 5]);
-F{1,2} = [1 0;0 0];
-F{1,3} = [0 0;0 1];
+F(1,:) = task1_gainsLB(5);
 
 % Task 1 gains. Upper bound
-F{2,1} = -diag([1000 1000]);
-F{2,2} = [-1 0;0 0];
-F{2,3} = [0 0;0 -1];
+F(2,:) = task1_gainsUB(1000);
 
 % Task 2 gains. lower bound
-F{3,1} = 1;
-F{3,4} = 1;
+F(3,:) = task2_gainsLB(1);
 
 % Task 2 gains. upper bound
-F{4,1} = -1000;
-F{4,4} = -1;
+F(4,:) = task2_gainsUB(1000);
 
 % Lower bound eigenvalue of M
 F{5,1} = diag([0.1 0.1 0.1]);
