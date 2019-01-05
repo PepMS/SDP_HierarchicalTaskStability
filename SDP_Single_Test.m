@@ -23,6 +23,35 @@ J12 = [J1;J2];
 N1 = (eye(njoints)-pinv(J1)*J1);
 N12 = (eye(njoints)-pinv(J12)*J12);
 
+M = [J1*pinv(J1) J1*N1*pinv(J2);
+    J2*pinv(J1)  J2*N1*pinv(J2)];
+
+la_ = sdpvar(1,1);
+lb_ = sdpvar(1,1);
+lc_ = sdpvar(1,1);
+
+A1 = [M11,zeros(3,2);M12,0,0;M13,0,0];
+A2 = [zeros(3,5);...
+zeros(1,3), M22, 0;...
+zeros(1,3), M23, 0];
+A3 = [zeros(3,5);...
+zeros(1,4), M23;...
+zeros(1,4), M33];
+
+F = [la_>=25,la_<=50,A1*la_+A2*lb_+A3*lc_>=0]; 
+ops = sdpsettings('solver', 'sedumi', 'verbose',0);
+%optimize(F,la_+lb_+lc_,ops);
+optimize(F,[],ops);
+
+la = double(la_);
+lb = double(lb_);
+lc = double(lc_);
+
+
+
+
+
+
 M11 = eye(2);
 M22 = J2*N1*pinv(J2);
 M33 = J3*N12*pinv(J3);

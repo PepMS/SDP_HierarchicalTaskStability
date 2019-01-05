@@ -22,26 +22,19 @@ robot = SerialLink(L, 'name', 'Planar_Robot');
 %% Task 1 (End-Effector position)
 % Desired position
 r1d = [0.65;0.17]; % close to a singularity
-r1d = [0.76; 0.18];
+r1d = [0.765; 0.18];
 
 % Initial position
 r10 = [0.7-0.2*cos(0);0.2*sin(0)];
-
-% Gain
-L1 = diag([100 100]);
 %% Task 2 (End-Effector orientation)
 % Desired orientation
-angle = -90*d2r;
+angle = -70*d2r;
 r2d = angle;
-r2d = 1.7484;
+%r2d = 1.7484;
 
 % Initial orientation
-angle0 = -70*d2r;
+angle0 = -65*d2r;
 r20 = angle0;
-
-%Gain
-L2 = 200;
-
 %% Algorithm
 
 % Initial configuration
@@ -97,7 +90,7 @@ for t=tt
     
     % Jacobian computation
     J1   = robot.jacob0(q);
-    J1ct = robot.jacob0(qct); 
+    J1ct = robot.jacob0(qct);
     J1(3:6,:)   = [];
     J1ct(3:6,:) = [];
     
@@ -108,7 +101,8 @@ for t=tt
     J2ct = ones(1,robot.n);
     
     % Gains Calculation
-    [K1, K2] = Vel_computeGains_3DOF_2_Chi(J1, J2, robot.n);
+    %[K1, K2] = Vel_computeGains_3DOF_2_Chi(J1, J2, robot.n);
+    [K1, K2] = Vel_computeGains_3DOF_2_Ly(J1, J2, robot.n);
     K1ct = eye(2)*5;
     K2ct = 5;
     
@@ -117,28 +111,37 @@ for t=tt
     N1ct    = (eye(robot.n)-pinv(J1ct)*J1ct);
     
     % Matrix M construction
-    M11 = eye(2);
-    M22 = J2*N1*pinv(J2);
-    M21 = J2*pinv(J1);
-    M11ct = eye(2);
-    M22ct = J2ct*N1ct*pinv(J2ct);
-    M21ct = J2ct*pinv(J1ct);
-       
+    A11 = J1*pinv(J1);
+    A21 = J2*pinv(J1);
+    A12 = J1*N1*pinv(J2);
+    A22 = J2*N1*pinv(J2);
+    
+    A = [A11, A12; ...
+        A21, A22];
+    
+    A11ct = J1ct*pinv(J1ct);
+    A21ct = J2ct*pinv(J1ct);
+    A12ct = J1ct*N1ct*pinv(J2ct);
+    A22ct = J2ct*N1ct*pinv(J2ct);
+    
+    Act = [A11ct, A12ct; ...
+        A21ct, A22ct];
+    
     SV1(:, i) = svd(J1);
     SV2(:, i) = svd(N1*pinv(J2));
     SV1ct(:, i) = svd(J1ct);
     SV2ct(:, i) = svd(N1ct*pinv(J2ct));
-           
+    
     % Compute task errors
     r1 = robot.fkine(q);
     r1d_d = [0;0];
-    %e1 = r1d - r1.t(1:2);
-    e1 = r1d - r1(1:2,4);
+    e1 = r1d - r1.t(1:2);
+    % e1 = r1d - r1(1:2,4);
     r1ct = robot.fkine(qct);
     r1dct_d = [0;0];
-    %e1 = r1d - r1.t(1:2);
-    e1ct = r1d - r1ct(1:2,4);
-   
+    e1ct = r1d - r1ct.t(1:2);
+    %e1ct = r1d - r1ct(1:2,4);
+    
     r2 = sum(q);
     e2 = r2d - r2;
     r2ct = sum(qct);
@@ -164,11 +167,12 @@ for t=tt
     KK1(:,i) = [K1(1) K1(4)]';  % Gain task 1
     KK2(:,i) = K2;              % Gain task 2
     
-    M(:,:,i) = [M11*K1, zeros(2,1); ...
-        M21*K1, M22*K2];
+    A = A*blkdiag(K1,K2);
+    Act = Act*blkdiag(K1ct,K2ct);
     
-    Mct(:,:,i) = [M11ct*K1, zeros(2,1); ...
-        M21*K1, M22*K2];
+    M(:,:,i) = (A+A')/2;
+    
+    Mct(:,:,i) = (Act+Act')/2;
     
     eVAL(:,i) = eig(M(:,:,i));
     eVALct(:,i) = eig(Mct(:,:,i));
@@ -178,27 +182,27 @@ for t=tt
 end
 
 %% Plotting robot
-conf_num  = size(QQ,2);
-conf_num  = 100;
-conf_show = 2;
-conf_step = cast(conf_num/conf_show,'uint8');
-
-figure(8);
-ops =  {'ortho','view','top','noshadow','noshading','notiles','nowrist','noname','jointdiam',5,'linkcolor','g'};
-robot.plotopt = ops;
-robot.plot(QQ(:,1)');
-hold on;
-axis([-0.1 1 -0.2 0.6])
-j = 1 + conf_step;
-
-%rob_cell = cell(1,conf_show);
-for i=1:conf_show
-    rob_cell = SerialLink(robot, 'name', strcat('robot',int2str(i)));
-    rob_cell.plotopt = ops;
-    rob_cell.plot(QQ(:,j)');
-    j = j + conf_step;
-end
-hold off
+% conf_num  = size(QQ,2);
+% conf_num  = 100;
+% conf_show = 2;
+% conf_step = cast(conf_num/conf_show,'uint8');
+% 
+% figure(8);
+% ops =  {'ortho','view','top','noshadow','noshading','notiles','nowrist','noname','jointdiam',5,'linkcolor','g'};
+% robot.plotopt = ops;
+% robot.plot(QQ(:,1)');
+% hold on;
+% axis([-0.1 1 -0.2 0.6])
+% j = 1 + conf_step;
+% 
+% %rob_cell = cell(1,conf_show);
+% for i=1:conf_show
+%     rob_cell = SerialLink(robot, 'name', strcat('robot',int2str(i)));
+%     rob_cell.plotopt = ops;
+%     rob_cell.plot(QQ(:,j)');
+%     j = j + conf_step;
+% end
+% hold off
 
 %% Plotting tasks
 
