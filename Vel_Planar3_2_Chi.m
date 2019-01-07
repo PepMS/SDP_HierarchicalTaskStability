@@ -100,9 +100,25 @@ for t=tt
     J2   = ones(1,robot.n);
     J2ct = ones(1,robot.n);
     
+    % Compute task errors
+    r1 = robot.fkine(q);
+    r1d_d = [0;0];
+    % e1 = r1d - r1.t(1:2);
+    e1 = r1d - r1(1:2,4);
+    r1ct = robot.fkine(qct);
+    r1dct_d = [0;0];
+    % e1ct = r1d - r1ct.t(1:2);
+    e1ct = r1d - r1ct(1:2,4);
+    
+    r2 = sum(q);
+    e2 = r2d - r2;
+    r2ct = sum(qct);
+    e2ct = r2d - r2ct;
+    
+    
     % Gains Calculation
     %[K1, K2] = Vel_computeGains_3DOF_2_Chi(J1, J2, robot.n);
-    [K1, K2] = Vel_computeGains_3DOF_2_Ly(J1, J2, robot.n);
+    [K1, K2] = Vel_computeGains_3DOF_2_Ly(J1, J2, e1, e2, robot.n);
     K1ct = eye(2)*5;
     K2ct = 5;
     
@@ -131,21 +147,6 @@ for t=tt
     SV2(:, i) = svd(N1*pinv(J2));
     SV1ct(:, i) = svd(J1ct);
     SV2ct(:, i) = svd(N1ct*pinv(J2ct));
-    
-    % Compute task errors
-    r1 = robot.fkine(q);
-    r1d_d = [0;0];
-    e1 = r1d - r1.t(1:2);
-    % e1 = r1d - r1(1:2,4);
-    r1ct = robot.fkine(qct);
-    r1dct_d = [0;0];
-    e1ct = r1d - r1ct.t(1:2);
-    %e1ct = r1d - r1ct(1:2,4);
-    
-    r2 = sum(q);
-    e2 = r2d - r2;
-    r2ct = sum(qct);
-    e2ct = r2d - r2ct;
     
     % Solve CLIK
     qd = pinv(J1)*(r1d_d + K1*e1) + N1*pinv(J2)*K2*e2;
@@ -186,7 +187,7 @@ end
 % conf_num  = 100;
 % conf_show = 2;
 % conf_step = cast(conf_num/conf_show,'uint8');
-% 
+%
 % figure(8);
 % ops =  {'ortho','view','top','noshadow','noshading','notiles','nowrist','noname','jointdiam',5,'linkcolor','g'};
 % robot.plotopt = ops;
@@ -194,7 +195,7 @@ end
 % hold on;
 % axis([-0.1 1 -0.2 0.6])
 % j = 1 + conf_step;
-% 
+%
 % %rob_cell = cell(1,conf_show);
 % for i=1:conf_show
 %     rob_cell = SerialLink(robot, 'name', strcat('robot',int2str(i)));
@@ -216,7 +217,7 @@ genericPrintFig(task2Err_fig, './plots/errorTask2');
 jointVel_fig = jointValues_plot(3, tt, QQ_d);
 genericPrintFig(jointVel_fig,'./plots/jointVel');
 
-jointVelct_fig = jointValues_plot(31, tt, QQct_d);
+% jointVelct_fig = jointValues_plot(31, tt, QQct_d);
 
 %% Tasks gains
 gains_fig = gains_plot(4,tt,[KK1;KK2]);
