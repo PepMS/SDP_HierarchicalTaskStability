@@ -34,13 +34,15 @@ E2 = J1p(:,2)*e1(2);
 E3 = J2p*e2;
 
 % Find optimal gains - Solving SDP
-nVars = 4; % Number of varaibles
+nVars = 11; % Number of varaibles (Gains(3) + Max.Eigen(1) + Slack (3*2) + Gamma(1))
 nBlock = 8; % Number of LMIs
-blockStruct = [2 2 1 1 3 3 3 3]; % Positive since it is symmetric
+% blockStruct = [2 2 1 1 3 3 3 3 7]; % Positive since it is symmetric
+blockStruct = [2 2 1 1 3 3 3 7]; % Positive since it is symmetric
 F = cell(nBlock, nVars + 1);
 
 % Cost function (minimize lambda)
-c = [0 0 0 1];
+% c = [0 0 0 1 0 0 0 0 0 0 5000];
+c = [0 0 0 0 0 0 0 0 0 1];
 
 % Task 1 gains. Lower bound
 F{1,1} = diag([5 5]);
@@ -67,22 +69,38 @@ F{5,3} = M2;
 F{5,4} = M3;
 
 % Minimize the maximum eigenvalue of M
-F{6,2} = -M1;
-F{6,3} = -M2;
-F{6,4} = -M3;
-F{6,5} = eye(3);
+% F{6,2} = -M1;
+% F{6,3} = -M2;
+% F{6,4} = -M3;
+% F{6,5} = eye(3);
 
 % Upper-Bound for joint velocity
-F{7,1} = diag([-10 -10 -10]);
-F{7,2} = -diag(E1);
-F{7,3} = -diag(E2);
-F{7,4} = -diag(E3);
+F{6,1} = diag([-10 -10 -10]);
+F{6,2} = -diag(E1);
+F{6,3} = -diag(E2);
+F{6,4} = -diag(E3);
+F{6,5} =  diag([1 0 0]);
+F{6,6} =  diag([0 1 0]);
+F{6,7} =  diag([0 0 1]);
 
 % Lower-Bound for joint velocity
-F{8,1} = diag([-0.81 -10 -10]);
-F{8,2} = diag(E1);
-F{8,3} = diag(E2);
-F{8,4} = diag(E3);
+F{7,1}  = diag([-0.78 -10 -10]);
+F{7,2}  = diag(E1);
+F{7,3}  = diag(E2);
+F{7,4}  = diag(E3);
+F{7,8}  =  diag([1 0 0]);
+F{7,9}  =  diag([0 1 0]);
+F{7,10} =  diag([0 0 1]);
+
+% Schur-Comp for bounds
+F{8,1} = blkdiag(0,-eye(6));
+for i=1:6
+    F9 = zeros(7);
+    F9(1, i+1) = 1;
+    F9 = F9+F9';
+    F{8,4+i} = F9;
+end
+F{8,11} = blkdiag(1, zeros(6));
 
 % Solve
 OPTION.print = '';
@@ -95,6 +113,6 @@ A = A*blkdiag(L1,L2);
 
 M = (A+A')/2;
 
-
+eig(A);
 eig(M);
 end

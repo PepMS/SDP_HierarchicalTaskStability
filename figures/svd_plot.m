@@ -10,9 +10,8 @@ fig.labels.y = '[rad]';
 
 % names
 x.name = '$t$';
-y{1}.name = '$\mbox{\boldmath $\sigma$}_{11}$';
-y{2}.name = '$\mbox{\boldmath $\sigma$}_{12}$';
-y{3}.name = '$\mbox{\boldmath $\sigma$}_{2}$';
+y{1}.name = '$\underline{\mbox{\boldmath $\sigma$}}_{1}$';
+y{2}.name = '$\underline {\mbox{\boldmath $\sigma$}}_{2}$';
 
 % colors
 color = lines(size(data,1));

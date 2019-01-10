@@ -6,13 +6,13 @@ fig.fontsize = 25;
 fig.position =  [100, 100, 1000, 400];
 fig.linewidth = 3;
 fig.labels.x = '[s]';
-fig.labels.y = '[rad]';
+fig.labels.y = 'Gains';
 
 % names
 x.name = '$t$';
-y{1}.name = '$\mbox{\boldmath $K$}_{11}$';
-y{2}.name = '$\mbox{\boldmath $K$}_{12}$';
-y{3}.name = '$\mbox{\boldmath $K$}_{2}$';
+y{1}.name = '$\lambda_1$';
+y{2}.name = '$\lambda_2$';
+y{3}.name = '$\lambda_3$';
 
 % colors
 color = lines(size(data,1));

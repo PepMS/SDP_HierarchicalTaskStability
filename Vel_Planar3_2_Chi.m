@@ -22,7 +22,7 @@ robot = SerialLink(L, 'name', 'Planar_Robot');
 %% Task 1 (End-Effector position)
 % Desired position
 r1d = [0.65;0.17]; % close to a singularity
-r1d = [0.765; 0.18];
+r1d = [0.76; 0.18];
 
 % Initial position
 r10 = [0.7-0.2*cos(0);0.2*sin(0)];
@@ -64,9 +64,9 @@ KK1ct = zeros(2,length(tt));
 KK2ct = zeros(1,length(tt));
 
 % singular values
-SV1 = zeros(2,length(tt));
+SV1 = zeros(1,length(tt));
 SV2 = zeros(1,length(tt));
-SV1ct = zeros(2,length(tt));
+SV1ct = zeros(1,length(tt));
 SV2ct = zeros(1,length(tt));
 
 % Errors
@@ -79,8 +79,10 @@ EE2ct = zeros(1,length(tt));
 M   = zeros(3,3,length(tt));
 Mct = zeros(3,3,length(tt));
 
-eVAL = zeros(3,length(tt));
-eVALct = zeros(3,length(tt));
+MeVAL = zeros(3,length(tt));
+AeVAL = zeros(3,length(tt));
+
+McteVAL = zeros(3,length(tt));
 
 % Variables
 q   = q0;
@@ -143,10 +145,10 @@ for t=tt
     Act = [A11ct, A12ct; ...
         A21ct, A22ct];
     
-    SV1(:, i) = svd(J1);
-    SV2(:, i) = svd(N1*pinv(J2));
-    SV1ct(:, i) = svd(J1ct);
-    SV2ct(:, i) = svd(N1ct*pinv(J2ct));
+    SV1(:, i) = min(svd(J1));
+    SV2(:, i) = min(svd(N1*pinv(J2)));
+    SV1ct(:, i) = min(svd(J1ct));
+    SV2ct(:, i) = min(svd(N1ct*pinv(J2ct)));
     
     % Solve CLIK
     qd = pinv(J1)*(r1d_d + K1*e1) + N1*pinv(J2)*K2*e2;
@@ -171,39 +173,45 @@ for t=tt
     A = A*blkdiag(K1,K2);
     Act = Act*blkdiag(K1ct,K2ct);
     
+    %     M(:,:,i) = (A+A')/2;
+    %     Mct(:,:,i) = (Act+Act')/2;
+    %     eVAL(:,i) = eig(M(:,:,i));
+    %     eVALct(:,i) = eig(Mct(:,:,i));
     M(:,:,i) = (A+A')/2;
-    
     Mct(:,:,i) = (Act+Act')/2;
     
-    eVAL(:,i) = eig(M(:,:,i));
-    eVALct(:,i) = eig(Mct(:,:,i));
+    MeVAL(:,i) = sort(eig(M(:,:,i)));
+    AeVAL(:,i) = sort(eig(A));
+    McteVAL(:,i) = sort(eig(Mct(:,:,i)));
     
     % Iterators
     i = i + 1;
 end
 
 %% Plotting robot
-% conf_num  = size(QQ,2);
-% conf_num  = 100;
-% conf_show = 2;
-% conf_step = cast(conf_num/conf_show,'uint8');
-%
-% figure(8);
-% ops =  {'ortho','view','top','noshadow','noshading','notiles','nowrist','noname','jointdiam',5,'linkcolor','g'};
-% robot.plotopt = ops;
-% robot.plot(QQ(:,1)');
-% hold on;
-% axis([-0.1 1 -0.2 0.6])
-% j = 1 + conf_step;
-%
-% %rob_cell = cell(1,conf_show);
+conf_num  = size(QQ,2);
+conf_num  = 100;
+conf_show = 2;
+conf_step = cast(conf_num/conf_show,'uint8');
+
+figure(8);
+ops =  {'ortho','view','top','noshadow','noshading','notiles','nowrist','noname',...
+    'jointcolor','k','jointdiam',2,'linkcolor','k'};
+robot.plotopt = ops;
+robot.plot(QQ(:,1)');
+%robot.plot(QQ');
+%hold on;
+axis([-0.1 1 -0.2 0.6])
+j = 1 + conf_step;
+
+%rob_cell = cell(1,conf_show);
 % for i=1:conf_show
 %     rob_cell = SerialLink(robot, 'name', strcat('robot',int2str(i)));
 %     rob_cell.plotopt = ops;
 %     rob_cell.plot(QQ(:,j)');
 %     j = j + conf_step;
 % end
-% hold off
+%hold off
 
 %% Plotting tasks
 
@@ -225,7 +233,22 @@ genericPrintFig(gains_fig,'./plots/gains');
 
 %% Plot singular values
 svd_fig = svd_plot(5, tt, [SV1;SV2]);
+genericPrintFig(svd_fig,'./plots/sValues');
+%% Plotting A eigenvalues
+MeVal_fig = eVal_plot(6, tt, MeVAL);
+genericPrintFig(MeVal_fig,'./plots/MeValues');
 
-%% Plotting M eigenvalues
+%% Plotting A eigenvalues
+AeVal_fig = eVal_plot(7, tt, AeVAL);
+genericPrintFig(AeVal_fig,'./plots/AeValues');
 
-eVal_fig = eVal_plot(6, tt, eVAL);
+%% Plot Lyapunov function
+
+%% Plotting Lyapunov Function
+
+% Plotting task 1
+% figure;
+% error = [EEa;EEb;EEc];
+% semilogy(tt, vecnorm(error).^2);
+% title('Lyapunov function')
+% grid on
