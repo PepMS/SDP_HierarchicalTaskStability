@@ -4,9 +4,12 @@ classdef (Abstract) Task
         dim;   % Task space dimension
         pri;   % Priority of the task
         r_des; % Desired task value
+        bound_u; % Gain Upper bound
+        bound_l; % Gain Lower bound
     end
     
     methods
+        % Constructor
         function obj = Task(robot_, pri_, r_des_)
             try
                 if isa(robot_, 'SerialLink')
@@ -33,6 +36,7 @@ classdef (Abstract) Task
         end
     end
     
+    % Virtual methods
     methods(Abstract)
         J = getTaskJacobian(obj, q);
         e = getTaskError(obj, q);
