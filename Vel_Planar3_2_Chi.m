@@ -40,7 +40,7 @@ T{end+1} = task_ori;
 %%% TODO: Method to sort tasks according to their priority
 
 %% Algorithm
-q0_d = zeros(robot.n,1);
+q0_d = zeros(robot.n, 1);
 
 % Iterators
 dt = 0.01;
@@ -84,76 +84,11 @@ McteVAL = zeros(3,length(tt));
 q   = q0;
 qct = q0;
 
-for t=tt
-        
-    % Gains Calculation
-    [K1, K2] = Vel_computeGains_3DOF_2_Ly(J1, J2, e1, e2, robot.n);
-    K1ct = eye(2)*5;
-    K2ct = 5;
-    
-    % Null space projectors
-    N1      = (eye(robot.n)-pinv(J1)*J1);
-    N1ct    = (eye(robot.n)-pinv(J1ct)*J1ct);
-    
-    % Matrix M construction
-    A11 = J1*pinv(J1);
-    A21 = J2*pinv(J1);
-    A12 = J1*N1*pinv(J2);
-    A22 = J2*N1*pinv(J2);
-    
-    A = [A11, A12; ...
-        A21, A22];
-    
-    A11ct = J1ct*pinv(J1ct);
-    A21ct = J2ct*pinv(J1ct);
-    A12ct = J1ct*N1ct*pinv(J2ct);
-    A22ct = J2ct*N1ct*pinv(J2ct);
-    
-    Act = [A11ct, A12ct; ...
-        A21ct, A22ct];
-    
-    SV1(:, i) = min(svd(J1));
-    SV2(:, i) = min(svd(N1*pinv(J2)));
-    SV1ct(:, i) = min(svd(J1ct));
-    SV2ct(:, i) = min(svd(N1ct*pinv(J2ct)));
-    
-    % Solve CLIK
-    qd = pinv(J1)*(r1d_d + K1*e1) + N1*pinv(J2)*K2*e2;
-    q = q + qd*dt;
-    qdct = pinv(J1ct)*(r1dct_d + K1ct*e1ct) + N1ct*pinv(J2ct)*K2ct*e2ct;
-    qct = qct + qdct*dt;
-    
-    % Store
-    QQ(:, i)   = q;   % Joint position
-    QQ_d(:, i) = qd;  % Joint velocities
-    QQct(:, i)   = qct;   % Joint position
-    QQct_d(:, i) = qdct;  % Joint velocities
-    
-    EE1(:, i) = e1; % Error task 1
-    EE2(:, i) = e2; % Error task 2
-    EE1ct(:, i) = e1ct; % Error task 1
-    EE2ct(:, i) = e2ct; % Error task 2
-    
-    KK1(:,i) = [K1(1) K1(4)]';  % Gain task 1
-    KK2(:,i) = K2;              % Gain task 2
-    
-    A = A*blkdiag(K1,K2);
-    Act = Act*blkdiag(K1ct,K2ct);
-    
-    %     M(:,:,i) = (A+A')/2;
-    %     Mct(:,:,i) = (Act+Act')/2;
-    %     eVAL(:,i) = eig(M(:,:,i));
-    %     eVALct(:,i) = eig(Mct(:,:,i));
-    M(:,:,i) = (A+A')/2;
-    Mct(:,:,i) = (Act+Act')/2;
-    
-    MeVAL(:,i) = sort(eig(M(:,:,i)));
-    AeVAL(:,i) = sort(eig(A));
-    McteVAL(:,i) = sort(eig(Mct(:,:,i)));
-    
-    % Iterators
-    i = i + 1;
-end
+% Define a problem variable
+clik_SDP = SDP_CLIK_GainScheduling(robot, T, tt);
+clik_SDP.solve();
+
+
 
 %% Plotting robot
 conf_num  = size(QQ,2);
