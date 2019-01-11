@@ -8,6 +8,7 @@ disp(strcat(mtTitle,'Loading libraries'))
 addpath(genpath('~/sdpa/share/sdpa/mex'));
 addpath(genpath('~/rvctools'));
 addpath('functions');
+addpath('classes');
 addpath('figures');
 addpath('plots');
 %% Constants definition
@@ -19,31 +20,26 @@ L(2) = Link('revolute','d', 0, 'a', 0.3, 'alpha', 0);
 L(3) = Link('revolute','d', 0, 'a', 0.2, 'alpha', 0);
 
 robot = SerialLink(L, 'name', 'Planar_Robot');
-%% Task 1 (End-Effector position)
-% Desired position
-r1d = [0.65;0.17]; % close to a singularity
-r1d = [0.76; 0.18];
 
-% Initial position
-r10 = [0.7-0.2*cos(0);0.2*sin(0)];
-%% Task 2 (End-Effector orientation)
-% Desired orientation
-angle = -70*d2r;
-r2d = angle;
-%r2d = 1.7484;
+%% Robot initial end-effector pose
+pos0 = [0.7-0.2*cos(0);0.2*sin(0)];
+ori0 = -65*d2r;
 
-% Initial orientation
-angle0 = -65*d2r;
-r20 = angle0;
+q0 = robot.ikunc(from2DPose2T(pos0,ori0));
+q0 = q0'; %All vectors must be in columns
+
+%% Task Definition
+task_pos = TaskPos(robot, 1, [0.76; 0.18]);
+task_ori = TaskOri(robot, 2, -70*d2r);
+
+%% Task addition to the problem
+T = {}; % Cell array of tasks
+T{end+1} = task_pos;
+T{end+1} = task_ori;
+
+%%% TODO: Method to sort tasks according to their priority
+
 %% Algorithm
-
-% Initial configuration
-R0 = [cos(angle0) -sin(angle0) 0;...
-    sin(angle0) cos(angle0) 0;...
-    0 0 1];
-T0 = [R0 [r10;0]; 0 0 0 1];
-q0 = robot.ikunc(T0);
-q0 = q0';
 q0_d = zeros(robot.n,1);
 
 % Iterators
@@ -89,37 +85,8 @@ q   = q0;
 qct = q0;
 
 for t=tt
-    
-    % Jacobian computation
-    J1   = robot.jacob0(q);
-    J1ct = robot.jacob0(qct);
-    J1(3:6,:)   = [];
-    J1ct(3:6,:) = [];
-    
-    qSum   = sum(q);
-    qSumct = sum(qct);
-    
-    J2   = ones(1,robot.n);
-    J2ct = ones(1,robot.n);
-    
-    % Compute task errors
-    r1 = robot.fkine(q);
-    r1d_d = [0;0];
-    % e1 = r1d - r1.t(1:2);
-    e1 = r1d - r1(1:2,4);
-    r1ct = robot.fkine(qct);
-    r1dct_d = [0;0];
-    % e1ct = r1d - r1ct.t(1:2);
-    e1ct = r1d - r1ct(1:2,4);
-    
-    r2 = sum(q);
-    e2 = r2d - r2;
-    r2ct = sum(qct);
-    e2ct = r2d - r2ct;
-    
-    
+        
     % Gains Calculation
-    %[K1, K2] = Vel_computeGains_3DOF_2_Chi(J1, J2, robot.n);
     [K1, K2] = Vel_computeGains_3DOF_2_Ly(J1, J2, e1, e2, robot.n);
     K1ct = eye(2)*5;
     K2ct = 5;
