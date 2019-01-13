@@ -69,5 +69,5 @@ clik_SDP = clik_SDP.solve();
 
 %% Plots
 
-clik_SDP.plotGains(1);
+g_fig = clik_SDP.plotGains(1);
 clik_SDP.plotJValues(2);
