@@ -65,4 +65,4 @@ clik_SDP = SDPCLIKProblem(robot, q0, T, dt, t_end);
 clik_SDP.OF_LMI = of_LMI;
 clik_SDP.LMI_l = LMI_l;
 
-clik_SDP.solve();
+clik_SDP = clik_SDP.solve();

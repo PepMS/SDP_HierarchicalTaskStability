@@ -56,7 +56,7 @@ classdef SDPCLIKProblem
             obj.EE   = zeros(obj.dim_err, l);
         end
         
-        function solve(obj)
+        function obj = solve(obj)
             tt = 0:obj.dt:obj.t_end;
             q = obj.q0;
             ii = 1;
