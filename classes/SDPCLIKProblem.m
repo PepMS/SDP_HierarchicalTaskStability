@@ -151,7 +151,7 @@ classdef SDPCLIKProblem
             obj.MM_e(:, ii)  = sort(eig(M));
             obj.QQ(:, ii)    = q_;
             obj.QQ_d(:, ii)  = q_d_;
-            obj.KK(:, ii)    = K_;            
+            obj.KK(:, ii)    = K_;
             obj.EE(:, ii) = e;
             
         end
@@ -183,6 +183,46 @@ classdef SDPCLIKProblem
                 col = col + post_Task.dim;
             end
         end
+        
+        function plotGains(obj)
+        end
+        
+        
+        function plotJValues(obj)
+            % Figure propierties
+            fig.num = nfig;
+            fig.title = 'Joint velocity';
+            fig.fontsize = 25;
+            fig.position =  [100, 100, 1000, 400];
+            fig.linewidth = 3;
+            fig.labels.x = '[s]';
+            fig.labels.y = '[rad/s]';
+            
+            % names
+            x.name = '$t$';
+            y{1}.name = '$\dot{\mbox{\boldmath $q$}}_1$';
+            y{2}.name = '$\dot{\mbox{\boldmath $q$}}_2$';
+            y{3}.name = '$\dot{\mbox{\boldmath $q$}}_3$';
+            
+            % colors
+            color = lines(size(data,1));
+            
+            % line styles
+            ls{1} = '-';
+            ls{2} = '--';
+            ls{3} = ':';
+            
+            % fill structures
+            x.data = t;
+            for ii=1:size(data,1)
+                y{ii}.data = data(ii,:);
+                y{ii}.color = color(ii,:);
+                y{ii}.linestyle = ls{ii};
+            end
+            
+            hfig = genericPlotData(fig,x,y);
+        end
+        
         
     end
 end
