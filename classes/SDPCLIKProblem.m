@@ -10,14 +10,15 @@ classdef SDPCLIKProblem
         OF_LMI;  % Object that detrmines the LMI linked with the OF
         LMI_l;   % List of LMIs that has to be added as constraints
         
-        AA; % Matrix A container
-        MM; % Matrix M container
-        AA_e; % Matrix A eigenvalues container
-        MM_e; % Matrix M eigenvalues container
-        QQ; % Joint angles container
-        QQ_d; % Joint velocity container
-        KK; %Gains container
-        EE; % tasks error container
+        AA;     % Matrix A container
+        MM;     % Matrix M container
+        AA_e;   % Matrix A eigenvalues container
+        MM_e;   % Matrix M eigenvalues container
+        QQ;     % Joint angles container
+        QQ_d;   % Joint velocity container
+        KK;     % Gains container
+        EE;     % Tasks error container
+        SV;     % Min. Singular value for each task (N*pinv(J))
         
         
     end
@@ -187,76 +188,39 @@ classdef SDPCLIKProblem
         function hfig = plotGains(obj, nfig_)
             % Figure propierties
             fig.num = nfig_;
-            fig.title = 'Gains';
             fig.fontsize = 25;
             fig.position =  [100, 100, 1000, 400];
             fig.linewidth = 3;
+            
+            % Title
+            fig.title = 'Gains';
+            
+            % Label
             fig.labels.x = '[s]';
             fig.labels.y = 'Gains';
             
-            % names
+            % Names
             x.name = '$t$';
-            y{1}.name = '$\lambda_1$';
-            y{2}.name = '$\lambda_2$';
-            y{3}.name = '$\lambda_3$';
-            
+            name = '$\lambda_';
+                  
             % colors
             color = lines(size(obj.KK,1));
             
             % line styles
-            ls{1} = '-';
-            ls{2} = '--';
-            ls{3} = ':';
-            
+            ls = {'-.', '-', '--', ':'};           
             
             % fill structures
             t = 0:obj.dt:obj.t_end;
             x.data = t;
             for ii=1:size(obj.KK,1)
+                y{ii}.name = strcat(name, num2str(ii),'$');
                 y{ii}.data = obj.KK(ii, :);
                 y{ii}.color = color(ii,:);
-                y{ii}.linestyle = ls{ii};
+                y{ii}.linestyle = ls{mod(ii,4) + 1};
             end
             
             hfig = genericPlotData(fig,x,y);
-        end
-        
-        
-        function plotJValues(obj, nfig_)
-            % Figure propierties
-            fig.num = nfig_;
-            fig.title = 'Joint velocity';
-            fig.fontsize = 25;
-            fig.position =  [100, 100, 1000, 400];
-            fig.linewidth = 3;
-            fig.labels.x = '[s]';
-            fig.labels.y = '[rad/s]';
-            
-            % names
-            x.name = '$t$';
-            y{1}.name = '$\dot{\mbox{\boldmath $q$}}_1$';
-            y{2}.name = '$\dot{\mbox{\boldmath $q$}}_2$';
-            y{3}.name = '$\dot{\mbox{\boldmath $q$}}_3$';
-            
-            % colors
-            color = lines(size(data,1));
-            
-            % line styles
-            ls{1} = '-';
-            ls{2} = '--';
-            ls{3} = ':';
-            
-            % fill structures
-            x.data = t;
-            for ii=1:size(data,1)
-                y{ii}.data = [];
-                y{ii}.color = color(ii,:);
-                y{ii}.linestyle = ls{ii};
-            end
-            
-            hfig = genericPlotData(fig,x,y);
-        end
-        
+        end      
         
     end
 end

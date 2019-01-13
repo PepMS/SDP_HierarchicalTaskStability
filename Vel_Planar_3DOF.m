@@ -68,6 +68,10 @@ clik_SDP.LMI_l = LMI_l;
 clik_SDP = clik_SDP.solve();
 
 %% Plots
+t = 0:dt:t_end;
 
-g_fig = clik_SDP.plotGains(1);
-clik_SDP.plotJValues(2);
+g_fig  = plotData(1, 'Gains', t, clik_SDP.KK, '$t$', '$\lambda_', '[s]', 'Gains');
+% Singular Values
+ev_fig = plotData(3, 'Eigenvalues', t, clik_SDP.AA_e, '$t$', '$a_', '[s]', 'EigenValues');
+jv_fig = plotData(4, 'JointVelocities', t, clik_SDP.QQ_d, '$t$', '$\dot{\mbox{\boldmath $q$}}_', '[s]', '[rad/s]');
+% Error plots
