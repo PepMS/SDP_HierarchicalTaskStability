@@ -9,7 +9,6 @@ addpath(genpath('~/sdpa/share/sdpa/mex'));
 addpath(genpath('~/rvctools'));
 addpath('functions');
 addpath('classes');
-addpath('figures');
 addpath('plots');
 
 %% Constants definition
@@ -19,6 +18,7 @@ d2r = pi/180;
 L(1) = Link('revolute','d', 0, 'a', 0.5, 'alpha', 0);
 L(2) = Link('revolute','d', 0, 'a', 0.3, 'alpha', 0);
 L(3) = Link('revolute','d', 0, 'a', 0.2, 'alpha', 0);
+L(4) = Link('revolute','d', 0, 'a', 0.2, 'alpha', 0);
 
 robot = SerialLink(L, 'name', 'Planar_Robot');
 
