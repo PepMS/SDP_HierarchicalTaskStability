@@ -12,8 +12,13 @@ classdef SDPCLIKProblem
         
         AA; % Matrix A container
         MM; % Matrix M container
-        eAA; % Matrix A eigenvalues container
-        eMM; % Matrix M eigenvalues container
+        AA_e; % Matrix A eigenvalues container
+        MM_e; % Matrix M eigenvalues container
+        QQ; % Joint angles container
+        QQ_d; % Joint velocity container
+        KK; %Gains container
+        EE; % tasks error container
+        
         
     end
     
@@ -25,6 +30,9 @@ classdef SDPCLIKProblem
             obj.dt = dt_;
             obj.t_end = t_end_;
             obj.dim_err = obj.computeAugmentedDimension();
+            
+            obj = obj.initializeContainers();
+            
         end
         
         function dim = computeAugmentedDimension(obj)
@@ -35,9 +43,23 @@ classdef SDPCLIKProblem
             end
         end
         
+        function obj = initializeContainers(obj)
+            l = obj.t_end/obj.dt + 1;
+            
+            obj.AA   = zeros(obj.dim_err, obj.dim_err, l);
+            obj.MM   = zeros(obj.dim_err, obj.dim_err, l);
+            obj.AA_e = zeros(obj.dim_err, l);
+            obj.MM_e = zeros(obj.dim_err, l);
+            obj.QQ   = zeros(obj.robot.n, l);
+            obj.QQ_d = zeros(obj.robot.n, l);
+            obj.KK   = zeros(obj.dim_err, l);
+            obj.EE   = zeros(obj.dim_err, l);
+        end
+        
         function solve(obj)
             tt = 0:obj.dt:obj.t_end;
             q = obj.q0;
+            ii = 1;
             for t=tt
                 % Compute Gains
                 K = obj.computeGains(q);
@@ -46,6 +68,10 @@ classdef SDPCLIKProblem
                 q_d = obj.computeJVel(K, q);
                 q = q + q_d*obj.dt;
                 
+                % Fill containers
+                obj = obj.fillContainers(K, q, q_d, ii);
+                
+                ii = ii + 1;
             end
         end
         
@@ -103,6 +129,30 @@ classdef SDPCLIKProblem
                 
                 q_d = q_d + aug_N*pinv(J)*diag(k)*e;
             end
+            
+        end
+        
+        function obj = fillContainers(obj, K_, q_, q_d_, ii)
+            A = obj.computeA(q_);
+            A = A*diag(K_);
+            
+            M = (A + A')/2;
+            
+            e = [];
+            for jj=1:length(obj.Tasks)
+                task = obj.Tasks{jj};
+                
+                e = [e; task.getTaskError(q_)];
+            end
+            
+            obj.AA(:, :, ii) = A;
+            obj.MM(:, :, ii) = M;
+            obj.AA_e(:, ii)  = sort(eig(A));
+            obj.MM_e(:, ii)  = sort(eig(M));
+            obj.QQ(:, ii)    = q_;
+            obj.QQ_d(:, ii)  = q_d_;
+            obj.KK(:, ii)    = K_;            
+            obj.EE(:, ii) = e;
             
         end
         

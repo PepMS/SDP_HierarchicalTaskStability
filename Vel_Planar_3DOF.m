@@ -47,7 +47,7 @@ T{end+1} = task_ori;
 
 %% Defining experiment parameters
 t_end = 5;
-dt = 0.1;
+dt = 0.01;
 %% Defining Objective functions and constraints
 % Defining which OF we're gonna add
 of_LMI = LMI_minMaxEigenvalue();
