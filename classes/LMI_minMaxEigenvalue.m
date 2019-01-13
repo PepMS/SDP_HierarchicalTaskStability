@@ -1,4 +1,4 @@
-classdef minMaxEigenvalue < LMI_ObFunction
+classdef LMI_minMaxEigenvalue < LMI_ObFunction
     
     methods
         function F = fillLMI(obj, M_, F)

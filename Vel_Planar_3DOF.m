@@ -31,7 +31,7 @@ q0 = q0'; %All vectors must be in columns
 
 %% Task Definition
 task_pos = TaskPos(robot, 1, [0.76; 0.18]);
-task_pos.bound_u = [1;2];
+task_pos.bound_u = [1;2]; % Gain bounds
 task_pos.bound_l = [1;2];
 
 task_ori = TaskOri(robot, 2, -70*d2r);
@@ -48,9 +48,18 @@ T{end+1} = task_ori;
 %% Defining experiment parameters
 t_end = 5;
 dt = 0.1;
+%% Defining Objective functions and constraints
+% Defining which OF we're gonna add
+of_LMI = LMI_minMaxEigenvalue();
+
+% LMI_gainBounds = LMI_gainBound(maxGains, minGains);
+LMI_gainBounds = LMI_gainBound();
+
+LMI_l = {};
+LMI_l{end+1} = LMI_gainBounds;
 %% Solve the Gain scheduling problem
 clik_SDP = SDPCLIKProblem(robot, q0, T, dt, t_end);
 
-of_LMI = minMaxEigenvalue();
 clik_SDP.OF_LMI = of_LMI;
+clik_SDP.LMI_l = LMI_l;
 clik_SDP.solve();

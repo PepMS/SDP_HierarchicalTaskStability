@@ -8,6 +8,7 @@ classdef SDPCLIKProblem
         dim_err; % Dimension of the augmented error vector
         
         OF_LMI;  % Object that detrmines the LMI linked with the OF
+        LMI_l;   % List of LMIs that has to be added as constraints
     end
     
     methods
@@ -22,11 +23,11 @@ classdef SDPCLIKProblem
         
         function dim = computeAugmentedDimension(obj)
             dim = 0;
-            for ii = 1:length(obj.Tasks)        
+            for ii = 1:length(obj.Tasks)
                 task = obj.Tasks{ii};
                 dim = dim + task.dim;
             end
-        end      
+        end
         
         function solve(obj)
             tt = 0:obj.dt:obj.t_end;
@@ -38,7 +39,7 @@ classdef SDPCLIKProblem
         end
         
         function K = computeGains(obj, q_)
-                    
+            
             M = obj.computeM(q_);
             
             nVars = 1 + obj.dim_err;
@@ -48,13 +49,18 @@ classdef SDPCLIKProblem
             % O.F. LMI
             F = obj.OF_LMI.fillLMI(M,F);
             
-            % Pure LMI
+            % Pure LMIs
+            for ii=1:length(obj.LMI_l)
+                lmi = obj.LMI_l{ii};
+                F = lmi.fillLMI(obj.Tasks, F);
+            end
+            
             
             c = zeros(1, nVars);
             c(end) = 1;
             OPTION.print = '';
             [objVal, xOpt, X, Y, INFO] = sdpam(nVars, nBlock, blockStruct, c, F, OPTION);
-            K = double(xOpt);            
+            K = double(xOpt);
         end
         
         function M = computeM(obj, q_)
@@ -70,7 +76,7 @@ classdef SDPCLIKProblem
                 else
                     aug_N = eye(obj.robot.n) - pinv(aug_J)*aug_J;
                     aug_J = [aug_J; post_J];
-                end              
+                end
                 
                 row = 1;
                 for jj = 1:length(obj.Tasks)
