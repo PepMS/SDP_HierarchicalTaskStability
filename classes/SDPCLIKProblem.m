@@ -9,6 +9,12 @@ classdef SDPCLIKProblem
         
         OF_LMI;  % Object that detrmines the LMI linked with the OF
         LMI_l;   % List of LMIs that has to be added as constraints
+        
+        AA; % Matrix A container
+        MM; % Matrix M container
+        eAA; % Matrix A eigenvalues container
+        eMM; % Matrix M eigenvalues container
+        
     end
     
     methods
@@ -33,7 +39,12 @@ classdef SDPCLIKProblem
             tt = 0:obj.dt:obj.t_end;
             q = obj.q0;
             for t=tt
+                % Compute Gains
                 K = obj.computeGains(q);
+                
+                % Compute joint velocity & position
+                q_d = obj.computeJVel(K, q);
+                q = q + q_d*obj.dt;
                 
             end
         end
@@ -64,7 +75,35 @@ classdef SDPCLIKProblem
             nBlock = size(F,1);
             OPTION.print = '';
             [objVal, xOpt, X, Y, INFO] = sdpam(nVars, nBlock, blockStruct, c, F, OPTION);
-            K = double(xOpt);
+            K = double(xOpt(1:end-1));
+        end
+        
+        function q_d = computeJVel(obj, K_, q_)
+            dim_a = 1;
+            q_d = zeros(size(q_));
+            
+            for ii=1:length(obj.Tasks)
+                task = obj.Tasks{ii};
+                
+                % Get gains corresponding to this task
+                k = K_(dim_a:dim_a + task.dim - 1);
+                dim_a = dim_a + task.dim;
+                
+                % get Jacobian and error
+                J = task.getTaskJacobian(q_);
+                e = task.getTaskError(q_);
+                
+                if ii == 1
+                    aug_J = J;
+                    aug_N = eye(obj.robot.n);
+                else
+                    aug_N = eye(obj.robot.n) - pinv(aug_J)*aug_J;
+                    aug_J = [aug_J; J];
+                end
+                
+                q_d = q_d + aug_N*pinv(J)*diag(k)*e;
+            end
+            
         end
         
         function A = computeA(obj, q_)
