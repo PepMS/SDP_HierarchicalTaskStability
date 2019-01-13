@@ -40,30 +40,34 @@ classdef SDPCLIKProblem
         
         function K = computeGains(obj, q_)
             
-            M = obj.computeM(q_);
+            A = obj.computeA(q_);
             
             nVars = 1 + obj.dim_err;
             blockStruct = [];
             F = {};
             
             % O.F. LMI
-            F = obj.OF_LMI.fillLMI(M,F);
+            [F, dim] = obj.OF_LMI.fillLMI(A, F);
+            blockStruct = [blockStruct, dim];
             
             % Pure LMIs
             for ii=1:length(obj.LMI_l)
                 lmi = obj.LMI_l{ii};
-                F = lmi.fillLMI(obj.Tasks, F);
+                [F, dim] = lmi.fillLMI(obj.Tasks, F, A);
+                blockStruct = [blockStruct, dim];
             end
             
             
             c = zeros(1, nVars);
             c(end) = 1;
+            
+            nBlock = size(F,1);
             OPTION.print = '';
             [objVal, xOpt, X, Y, INFO] = sdpam(nVars, nBlock, blockStruct, c, F, OPTION);
             K = double(xOpt);
         end
         
-        function M = computeM(obj, q_)
+        function A = computeA(obj, q_)
             A = zeros(obj.dim_err);
             col = 1;
             for ii = 1:length(obj.Tasks)
@@ -89,8 +93,6 @@ classdef SDPCLIKProblem
                 end
                 col = col + post_Task.dim;
             end
-            
-            M = (A' + A)/2;
         end
         
     end

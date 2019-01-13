@@ -1,5 +1,5 @@
 classdef (Abstract) LMI_ObFunction
     methods(Abstract)
-        F = fillLMI(obj);
+        [F, bS] = fillLMI(obj);
     end    
 end

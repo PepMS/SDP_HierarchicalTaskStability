@@ -1,6 +1,6 @@
 classdef (Abstract) LMI_Constraint
     methods(Abstract)
         % Constructor
-        F = fillLMI(obj);
+        [F, bS] = fillLMI(obj);
     end    
 end
