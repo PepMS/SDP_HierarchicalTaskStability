@@ -72,6 +72,6 @@ t = 0:dt:t_end;
 
 g_fig  = plotData(1, 'Gains', t, clik_SDP.KK, '$t$', '$\lambda_', '[s]', 'Gains');
 % Singular Values
-ev_fig = plotData(3, 'Eigenvalues', t, clik_SDP.AA_e, '$t$', '$a_', '[s]', 'EigenValues');
+ev_fig = plotData(3, 'Eigenvalues', t, clik_SDP.MM_e, '$t$', '$a_', '[s]', 'EigenValues');
 jv_fig = plotData(4, 'JointVelocities', t, clik_SDP.QQ_d, '$t$', '$\dot{\mbox{\boldmath $q$}}_', '[s]', '[rad/s]');
 % Error plots
