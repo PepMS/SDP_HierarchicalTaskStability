@@ -7,9 +7,9 @@ disp(strcat(mtTitle,'Loading libraries'))
 
 addpath(genpath('~/sdpa/share/sdpa/mex'));
 addpath(genpath('~/rvctools'));
-addpath('functions');
-addpath('classes');
-addpath('plots');
+addpath('../functions');
+addpath('../classes');
+addpath('../plots');
 
 %% Constants definition
 d2r = pi/180;
@@ -75,3 +75,4 @@ g_fig  = plotData(1, 'Gains', t, clik_SDP.KK, '$t$', '$\lambda_', '[s]', 'Gains'
 ev_fig = plotData(3, 'Eigenvalues', t, clik_SDP.MM_e, '$t$', '$a_', '[s]', 'EigenValues');
 jv_fig = plotData(4, 'JointVelocities', t, clik_SDP.QQ_d, '$t$', '$\dot{\mbox{\boldmath $q$}}_', '[s]', '[rad/s]');
 % Error plots
+ly_fig = plotDataLog()
