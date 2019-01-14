@@ -1,15 +1,15 @@
 classdef LMI_stability < LMI_Constraint
     methods
-        function [F, bS] = fillLMI(obj, Tasks_, F, M_)
+        function [F, bS] = fillLMI(obj, Tasks_, F, A_, q_)
             index = min(size(F)) + 1;
-            dim = size(M_,1);
+            dim = size(A_,1);
             
             bS = dim;
             
             for ii=1:dim
-                M_aux = zeros(size(M_,1));
-                M_aux(:, ii) = M_(:, ii);
-                F{index, ii+1} = (M_aux + M_aux')/2;
+                A_aux = zeros(size(A_,1));
+                A_aux(:, ii) = A_(:, ii);
+                F{index, ii+1} = (A_aux + A_aux')/2;
             end
             F{index, 1} =  eye(3);
         end

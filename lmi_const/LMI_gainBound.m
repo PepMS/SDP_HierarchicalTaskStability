@@ -1,6 +1,6 @@
 classdef LMI_gainBound < LMI_Constraint 
     methods
-        function [F, bS] = fillLMI(obj, Tasks_, F, M_)
+        function [F, bS] = fillLMI(obj, Tasks_, F, A_, q_)
             index = size(F,1) + 1;
             
             [l_bound, u_bound] = obj.getBounds(Tasks_);
@@ -27,7 +27,5 @@ classdef LMI_gainBound < LMI_Constraint
                 u_b = [u_b; task.bound_u];
             end            
         end
-        
-        
     end
 end

@@ -91,7 +91,7 @@ classdef SDPCLIKProblem
             % Pure LMIs
             for ii=1:length(obj.LMI_l)
                 lmi = obj.LMI_l{ii};
-                [F, dim] = lmi.fillLMI(obj.Tasks, F, A);
+                [F, dim] = lmi.fillLMI(obj.Tasks, F, A, q_);
                 blockStruct = [blockStruct, dim];
             end
             

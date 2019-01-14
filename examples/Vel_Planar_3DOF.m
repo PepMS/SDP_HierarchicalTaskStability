@@ -21,7 +21,6 @@ d2r = pi/180;
 L(1) = Link('revolute','d', 0, 'a', 0.5, 'alpha', 0);
 L(2) = Link('revolute','d', 0, 'a', 0.3, 'alpha', 0);
 L(3) = Link('revolute','d', 0, 'a', 0.2, 'alpha', 0);
-L(4) = Link('revolute','d', 0, 'a', 0.2, 'alpha', 0);
 
 robot = SerialLink(L, 'name', 'Planar_Robot');
 
@@ -51,17 +50,22 @@ T{end+1} = task_ori;
 %% Defining experiment parameters
 t_end = 5;
 dt = 0.01;
+
+jv_ubound = [10 10 10]';
+jv_lbound = [-0.78 -10 -10]';
 %% Defining Objective functions and constraints
 % Defining which OF we're gonna add
 of_LMI = LMI_minMaxEigenvalue();
 
 % LMI_gainBounds = LMI_gainBound(maxGains, minGains);
-LMI_gainBounds = LMI_gainBound();
-LMI_stability = LMI_stability();
+lmi_gainBounds = LMI_gainBound();
+lmi_stability  = LMI_stability();
+lmi_jVelBound  = LMI_jVelBound(jv_ubound, jv_lbound);
 
 LMI_l = {};
-LMI_l{end+1} = LMI_gainBounds;
-LMI_l{end+1} = LMI_stability;
+LMI_l{end+1} = lmi_gainBounds;
+LMI_l{end+1} = lmi_stability;
+LMI_l{end+1} = lmi_jVelBound;
 %% Solve the Gain scheduling problem
 clik_SDP = SDPCLIKProblem(robot, q0, T, dt, t_end);
 
