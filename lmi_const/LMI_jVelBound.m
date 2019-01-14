@@ -19,7 +19,7 @@ classdef LMI_jVelBound < LMI_Constraint
             
             S = obj.computeS(Tasks_, q_);
             
-            for ii=1:dim
+            for ii=1:size(S,2)
                 F{index    , ii+1} =  diag(S(:,ii)); % Lower bound
                 F{index + 1, ii+1} = -diag(S(:,ii)); % Upper bound
             end

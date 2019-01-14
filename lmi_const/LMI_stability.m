@@ -11,7 +11,7 @@ classdef LMI_stability < LMI_Constraint
                 A_aux(:, ii) = A_(:, ii);
                 F{index, ii+1} = (A_aux + A_aux')/2;
             end
-            F{index, 1} =  eye(3);
+            F{index, 1} =  0.1*eye(3);
         end
     end
 end

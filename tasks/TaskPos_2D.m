@@ -1,4 +1,4 @@
-classdef TaskPos < Task
+classdef TaskPos_2D< Task
     methods
         function J = getTaskJacobian(obj, q)
             J = obj.robot.jacob0(q');

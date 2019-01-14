@@ -1,4 +1,4 @@
-classdef TaskOri < Task
+classdef TaskOri_2D < Task
     methods
         function J = getTaskJacobian(obj, q)
             J = ones(1, length(q));
