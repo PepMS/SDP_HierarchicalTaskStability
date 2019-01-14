@@ -7,8 +7,11 @@ disp(strcat(mtTitle,'Loading libraries'))
 
 addpath(genpath('~/sdpa/share/sdpa/mex'));
 addpath(genpath('~/rvctools'));
-addpath('../functions');
 addpath('../classes');
+addpath('../lmi_of');
+addpath('../lmi_const');
+addpath('../tasks');
+addpath('../functions');
 addpath('../plots');
 
 %% Constants definition
@@ -68,11 +71,27 @@ clik_SDP.LMI_l = LMI_l;
 clik_SDP = clik_SDP.solve();
 
 %% Plots
-t = 0:dt:t_end;
 
-g_fig  = plotData(1, 'Gains', t, clik_SDP.KK, '$t$', '$\lambda_', '[s]', 'Gains');
+t = 0:dt:t_end;
+err = vecnorm(clik_SDP.EE).^2;
+fig_export = 1;
+
+% Generating figures
+g_fig  = plotData(1, 'Gains', t, clik_SDP.KK, '$t$', '$\lambda_', '[s]', 'Gains','');
 % Singular Values
-ev_fig = plotData(3, 'Eigenvalues', t, clik_SDP.MM_e, '$t$', '$a_', '[s]', 'EigenValues');
-jv_fig = plotData(4, 'JointVelocities', t, clik_SDP.QQ_d, '$t$', '$\dot{\mbox{\boldmath $q$}}_', '[s]', '[rad/s]');
+ev_fig = plotData(3, 'Eigenvalues', t, clik_SDP.MM_e, '$t$', '$a_', '[s]', 'EigenValues','');
+jv_fig = plotData(4, 'JointVelocities', t, clik_SDP.QQ_d, '$t$', '$\dot{\mbox{\boldmath $q$}}_', '[s]', '[rad/s]','');
 % Error plots
-ly_fig = plotDataLog()
+ly_fig = plotData(6, 'Lyapunov Function', t, err, '$t$', '$e_', '', '','log');
+
+% Exporting pdf
+if fig_export
+    genericPrintFig(g_fig,'./plots/gains');
+    genericPrintFig(ev_fig,'./plots/MeValues');
+    genericPrintFig(jv_fig,'./plots/jointVel');
+    genericPrintFig(ly_fig, './plots/lyapunov');
+end
+
+
+    
+

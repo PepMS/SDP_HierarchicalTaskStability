@@ -1,4 +1,4 @@
-function hfig = plotData(nfig_, title, t, data, name_x, name_y, label_x, label_y)
+function hfig = plotData(nfig_, title, t, data, name_x, name_y, label_x, label_y, type)
 
 % Figure propierties
 fig.num = nfig_;
@@ -31,5 +31,10 @@ for ii=1:size(data,1)
     y{ii}.linestyle = ls{mod(ii,4) + 1};
 end
 
-hfig = genericPlotData(fig,x,y);
+if strcmp(type, 'log')
+    hfig = genericPlotDataLog(fig,x,y);
+else
+    hfig = genericPlotData(fig,x,y);
+end
+
 end
