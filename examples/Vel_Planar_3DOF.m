@@ -79,6 +79,8 @@ clik_SDP = clik_SDP.solve();
 t = 0:dt:t_end;
 err = vecnorm(clik_SDP.EE).^2;
 fig_export = 1;
+t1_sat = 0.19;
+t2_sat = 0.31;
 
 % Generating figures
 g_fig  = plotData(1, 'Gains', t, clik_SDP.KK, '$t$', '$\lambda_', '[s]', 'Gains','');
@@ -88,12 +90,19 @@ jv_fig = plotData(4, 'JointVelocities', t, clik_SDP.QQ_d, '$t$', '$\dot{\mbox{\b
 % Error plots
 ly_fig = plotData(6, 'Lyapunov Function', t, err, '$t$', '$e_', '', '','log');
 
+% Draw saturation lines
+plotHorizontalLine(jv_fig, t, -0.78);
+plotVerticalLine(jv_fig, t1_sat);
+plotVerticalLine(jv_fig, t2_sat);
+plotVerticalLine(ev_fig, t1_sat);
+plotVerticalLine(ev_fig, t2_sat);
+
 % Exporting pdf
 if fig_export
-    genericPrintFig(g_fig,'./plots/gains');
-    genericPrintFig(ev_fig,'./plots/MeValues');
-    genericPrintFig(jv_fig,'./plots/jointVel');
-    genericPrintFig(ly_fig, './plots/lyapunov');
+    genericPrintFig(g_fig,'../plots/gains');
+    genericPrintFig(ev_fig,'../plots/MeValues');
+    genericPrintFig(jv_fig,'../plots/jointVel');
+    genericPrintFig(ly_fig, '../plots/lyapunov');
 end
 
 
