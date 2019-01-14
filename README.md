@@ -1,4 +1,4 @@
-# SDP_HierarchicalTaskStability
+# SDP-HierarchicalTaskStability
 
 This repository is related with my master thesis titled "Redundancy control through Lexicographic SDP".
 
