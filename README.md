@@ -54,5 +54,5 @@ You can do this procedure inside a folder of your choice. In order to ease the p
 
 ## Installation and use
 
-- Clone the repository in the desired folder: `git clone https://github.com/PepMS/SDPTrajectoryGeneration.git`
-- Inside matlab, navigate to the folder of the repository and run the script "main.m".
+- Clone the repository in the desired folder: `https://github.com/PepMS/SDP_HierarchicalTaskStability.git`
+- Inside matlab, you can run any of the examples contained inside the folder "examples".
