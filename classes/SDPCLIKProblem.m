@@ -55,6 +55,7 @@ classdef SDPCLIKProblem
             obj.QQ_d = zeros(obj.robot.n, l);
             obj.KK   = zeros(obj.dim_err, l);
             obj.EE   = zeros(obj.dim_err, l);
+            obj.SV   = zeros(length(obj.Tasks), l);
         end
         
         function obj = solve(obj)
@@ -139,10 +140,22 @@ classdef SDPCLIKProblem
             
             M = (A + A')/2;
             
-            e = [];
+            e  = [];
+            sv = [];
             for jj=1:length(obj.Tasks)
                 task = obj.Tasks{jj};
                 
+                J = task.getTaskJacobian(q_);
+                                
+                if jj == 1
+                    aug_J = J;
+                    aug_N = eye(obj.robot.n);
+                else
+                    aug_N = eye(obj.robot.n) - pinv(aug_J)*aug_J;
+                    aug_J = [aug_J; J];
+                end
+                
+                sv = [sv; min(svd(aug_N*pinv(J)))];
                 e = [e; task.getTaskError(q_)];
             end
             
@@ -154,6 +167,7 @@ classdef SDPCLIKProblem
             obj.QQ_d(:, ii)  = q_d_;
             obj.KK(:, ii)    = K_;
             obj.EE(:, ii) = e;
+            obj.SV(:, ii) = sv;
             
         end
         

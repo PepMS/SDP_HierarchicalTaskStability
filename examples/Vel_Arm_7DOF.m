@@ -26,7 +26,7 @@ L(5) = Link('revolute','d', 0,   'a', 0,    'alpha', pi/2);
 L(6) = Link('revolute','d', 0,   'a', 0,    'alpha', pi/2);
 L(7) = Link('revolute','d', 0.15,'a', 0,    'alpha', 0);
 
-robot = SerialLink(L, 'name', 'Planar_Robot');
+robot = SerialLink(L, 'name', '7DoF_Robot');
 
 %% Robot initial end-effector pose
 
@@ -53,7 +53,7 @@ T{end+1} = task_pos_el;
 %%% TODO: I am also assuming there is only one task per priority
 
 %% Defining experiment parameters
-t_end = 5;
+t_end = 2;
 dt = 0.01;
 
 jv_ubound = [ 100  100  100  100  100  100  100]';
@@ -92,12 +92,12 @@ norm_err = [vecnorm(clik_SDP.EE(1:3,:)); ...
 
 
 % Generating figures
-g_fig  = plotData(1, 'Gains', t, clik_SDP.KK, '$t$', '$\lambda_', '[s]', 'Gains','');
+g_fig  = plotData(1, 'Gains', t, clik_SDP.KK, '$t$', '$\lambda_', '[s]', '[s$^{-1}$]','');
 % Singular Values
 ev_fig = plotData(3, 'Eigenvalues', t, clik_SDP.MM_e, '$t$', '$a_', '[s]', 'EigenValues','');
 jv_fig = plotData(4, 'JointVelocities', t, clik_SDP.QQ_d, '$t$', '$\dot{\mbox{\boldmath $q$}}_', '[s]', '[rad/s]','');
 ee_fig = plotData(5, 'Task Errors', t, norm_err, '$t$', '$e_', '[s]', '[m]','');
-ly_fig = plotData(6, 'Lyapunov Function', t, err, '$t$', '$e_', '', '','log');
+ly_fig = plotData(6, 'Lyapunov Function', t, err, '$t$', '', '[s]', '[m$^2$]','log');
 
 % Draw saturation lines
 % plotHorizontalLine(jv_fig, t, -0.78);
